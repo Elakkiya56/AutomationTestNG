@@ -255,7 +255,7 @@ public class AssertManager {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		msg= AbstractPage.addLinebreaks(msg, 100);
+//		msg= AbstractPage.addLinebreaks(msg, 100);
 		if (status == Status.PASS) {
 			BaseTest.extentTest.log(Status.PASS, msg);
 			System.out.println(msg);

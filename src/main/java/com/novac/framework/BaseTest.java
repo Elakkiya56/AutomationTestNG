@@ -25,6 +25,10 @@ import com.novac.driver.TestDriver;
 import com.novac.utils.ExcelObject;
 import com.novac.utils.UIUtils;
 
+import io.cucumber.java.After;
+import io.cucumber.java.Before;
+import io.cucumber.java.Scenario;
+
 public class BaseTest {
 	public static LogMe LOGGER;
 	public static WebDriver driver;
@@ -40,53 +44,45 @@ public class BaseTest {
 	private File parentDirectory = null;
 	private File reportDirectory = null;
 	private File screenshotDirectory = null;
+	private String featureFilePath;
 	
-
-	@BeforeSuite
-	public void suiteSetup() {
-		try {
-			TestConfig.getInstance().suiteSetup();
-			String currDate = new SimpleDateFormat("yyyy-MMM-dd").format(new Date());
-			PARAENT_REPORT_FOLDER_PATH =System.getProperty("user.dir") + File.separator+ "Framework/Test_Reports/"+TestConfig.getModuleName()+"_UI/"+TestConfig.getModuleName()+"_UI_"+currDate;
-			parentDirectory = new File(PARAENT_REPORT_FOLDER_PATH+"/temp.txt");
-			String currDateTimestamp = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss").format(new Date()).replace(" ", "-").replaceAll(":", "-");
-			REPORT_FOLDER_PATH = PARAENT_REPORT_FOLDER_PATH+"/"+currDateTimestamp;
-			reportDirectory = new File(REPORT_FOLDER_PATH+"/temp.txt");
-			SCREENSHOT_FOLDER_PATH = REPORT_FOLDER_PATH+"/Screenshots";
-			screenshotDirectory = new File(SCREENSHOT_FOLDER_PATH+"/temp.txt");
-								
-			if (! parentDirectory.getParentFile().exists()){
-				parentDirectory.getParentFile().mkdirs();
-				parentDirectory.createNewFile();
-		    }
-			
-			if (! reportDirectory.getParentFile().exists()){
-				reportDirectory.getParentFile().mkdirs();
-				reportDirectory.createNewFile();
-		    }
-			
-			if (! screenshotDirectory.getParentFile().exists()){
-				screenshotDirectory.getParentFile().mkdirs();
-				screenshotDirectory.createNewFile();
-		    }
-			
-			//ExtentManager.createInstance("Framework/Test_Reports/AUTOMATION_Test-Reports"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replace(" ", "-").replaceAll(":", "-")+".html");
-			ExtentManager.createInstance(REPORT_FOLDER_PATH+"/AUTOMATION_Test-Reports"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replace(" ", "-").replaceAll(":", "-")+".html");
-			LOGGER = new LogMe(BaseTest.class);
-			LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
-		} catch (Exception e) {
-			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method");
-		}
-}
-	
-	@BeforeMethod
-	public void startReporting(Method method) throws Exception {
-		System.out.println("Started @BeforeMethod");
+	@Before
+	public void suiteSetup1(Scenario scenario) throws Exception {
+		TestConfig.getInstance().suiteSetup();
+		String currDate = new SimpleDateFormat("yyyy-MMM-dd").format(new Date());
+		PARAENT_REPORT_FOLDER_PATH =System.getProperty("user.dir") + File.separator+ "Framework/Test_Reports/"+TestConfig.getModuleName()+"_UI/"+TestConfig.getModuleName()+"_UI_"+currDate;
+		parentDirectory = new File(PARAENT_REPORT_FOLDER_PATH+"/temp.txt");
+		String currDateTimestamp = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss").format(new Date()).replace(" ", "-").replaceAll(":", "-");
+		REPORT_FOLDER_PATH = PARAENT_REPORT_FOLDER_PATH+"/"+currDateTimestamp;
+		reportDirectory = new File(REPORT_FOLDER_PATH+"/temp.txt");
+		SCREENSHOT_FOLDER_PATH = REPORT_FOLDER_PATH+"/Screenshots";
+		screenshotDirectory = new File(SCREENSHOT_FOLDER_PATH+"/temp.txt");
+		
+							
+		if (! parentDirectory.getParentFile().exists()){
+			parentDirectory.getParentFile().mkdirs();
+			parentDirectory.createNewFile();
+	    }
+		
+		if (! reportDirectory.getParentFile().exists()){
+			reportDirectory.getParentFile().mkdirs();
+			reportDirectory.createNewFile();
+	    }
+		
+		if (! screenshotDirectory.getParentFile().exists()){
+			screenshotDirectory.getParentFile().mkdirs();
+			screenshotDirectory.createNewFile();
+	    }
+		
+		//ExtentManager.createInstance("Framework/Test_Reports/AUTOMATION_Test-Reports"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replace(" ", "-").replaceAll(":", "-")+".html");
+		ExtentManager.createInstance(REPORT_FOLDER_PATH+"/AUTOMATION_Test-Reports"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).replace(" ", "-").replaceAll(":", "-")+".html");
+		LOGGER = new LogMe(BaseTest.class);
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+		
 		driver = TestDriver.driverInstantiation(TestConfig.getConfig().getPropertyValue("Browser").toUpperCase());
-//		extentTest = LOGGER.logBeginTestCase(method.getName());
-		LogMe.test_name=method.getName();
+		LogMe.test_name=scenario.getName();
 		sAssert = new SoftAssert();	
-		extentTest = LOGGER.logBeginTestCase("TC_" + ExcelObject.testCase_Id.get(method.getName()) +"_" + LogMe.test_name);
+		extentTest = LOGGER.logBeginTestCase("TC_" + ExcelObject.testCase_Id.get(scenario.getName()) +"_" + LogMe.test_name);
 
 		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(120));
 		driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(120));
@@ -109,34 +105,31 @@ public class BaseTest {
 		} else {
 			driver.manage().window().maximize();
 		}
-		 	
+		driver.get("");
 	}
 	
-	@AfterMethod
-	public void testResult(Method method, ITestResult result) throws IOException {
+	
+	@After
+	private void afterSuite1(Scenario scenario, ITestResult result) throws IOException {
 		switch (result.getStatus()) {
 		case ITestResult.SUCCESS:
-			LOGGER.logWithScreenshot("PASS", "Test Case " + method.getName() + " is passed", driver);
+			LOGGER.logWithScreenshot("PASS", "Test Case " + scenario.getName() + " is passed", driver);
 			break;
 		case ITestResult.FAILURE:
-			LOGGER.logTestStep(extentTest, "FAIL", "Test Case " + method.getName() + " failed");
+			LOGGER.logTestStep(extentTest, "FAIL", "Test Case " + scenario.getName() + " failed");
 			break;
 		case ITestResult.SKIP:
-			LOGGER.logWithScreenshot("skip", "Test Case " + method.getName() + "  skiped", driver);
+			LOGGER.logWithScreenshot("skip", "Test Case " + scenario.getName() + "  skiped", driver);
 			break;
 		default:
 			break;
 		}
-		LOGGER.logEndTestCase(method.getName(), extentTest);
+		LOGGER.logEndTestCase(scenario.getName(), extentTest);
 		
 		TestCaseUpdate testCaseUpdate=new TestCaseUpdate();
-		int testCaseID = Integer.parseInt(ExcelObject.testCase_Id.get(method.getName()));
-		int testSuiteID = Integer.parseInt(ExcelObject.testSuite_Id.get(method.getName()));
+		int testCaseID = Integer.parseInt(ExcelObject.testCase_Id.get(scenario.getName()));
+		int testSuiteID = Integer.parseInt(ExcelObject.testSuite_Id.get(scenario.getName()));
 		driver.quit();
-	}
-
-	@AfterSuite
-	public void generateResult() {
 		try {
 			ExtentManager.getInstance().flush();
 			if(parentDirectory.exists()) {
@@ -152,4 +145,24 @@ public class BaseTest {
 			ExtentManager.getInstance().flush();
 		}
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

@@ -2,6 +2,7 @@ package com.novac.driver;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -35,6 +36,8 @@ public class TestConfig {
 	private int FailureRetryCount;
 
 	private String testModuleName;
+	private static String featureFilePath;
+	private static String featureModule;
 
 	private TestConfig() {
 	}
@@ -160,7 +163,9 @@ public class TestConfig {
 		testModulesPath = new File("Framework/Test_Scripts").getCanonicalPath();
 		deviceResolution = String.valueOf(tcExcel.getCellValue("Config", "Value", "Key=Resolution")).trim();
 		setTestModuleName(String.valueOf(tcExcel.getCellValue("Config", "Value", "Key=Resolution")).trim());
-
+		featureFilePath = System.getProperty("user.dir")+File.separator+"src/test/resources/";
+		featureModule = config.getPropertyValue("FeatureModuleName");
+		
 		if ("Yes".equalsIgnoreCase(
 				String.valueOf(tcExcel.getCellValue("Config", "Value", "Key=RemoteExecution")).trim())) {
 			remoteExecution = true;
@@ -171,6 +176,22 @@ public class TestConfig {
 		execEnvironment = String.valueOf(tcExcel.getCellValue("Config", "Value", "Key=Environment")).trim();
 
 		tcExcel.closeWorkbook();
+	}
+
+	public static String getFeatureFilePath() {
+		return featureFilePath;
+	}
+
+	public static void setFeatureFilePath(String featureFilePath) {
+		TestConfig.featureFilePath = featureFilePath;
+	}
+
+	public static String getFeatureModule() {
+		return featureModule;
+	}
+
+	public static void setFeatureModule(String featureModule) {
+		TestConfig.featureModule = featureModule;
 	}
 
 	public void setTestModuleName(String testModuleName) {
